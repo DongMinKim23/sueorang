@@ -2,12 +2,14 @@ package com.kotlincodes.cameraintentwithkotlin_android
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -20,17 +22,25 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import java.io.File
+import java.util.Base64
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+
+import android.util.Log
+
+
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import okhttp3.*
 
 
 class MainActivity : AppCompatActivity() {
     lateinit var imageView: ImageView
     lateinit var captureButton: Button
-
+    lateinit var sendButton: Button
+    private val client = OkHttpClient()
     val REQUEST_IMAGE_CAPTURE = 1
-
 
     private val PERMISSION_REQUEST_CODE: Int = 101
 
@@ -38,12 +48,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         imageView = findViewById(R.id.image_view)
         captureButton = findViewById(R.id.btn_capture)
         captureButton.setOnClickListener(View.OnClickListener {
             if (checkPersmission()) takePicture() else requestPermission()
         })
+        sendButton = findViewById(R.id.btn_send)
+        sendButton.setOnClickListener(View.OnClickListener {
+            val intent = Intent(this, SubActivity::class.java)
+            startActivity(intent)
+        })
+
     }
 
 
@@ -83,13 +98,14 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
 
             //To get the File for further usage
-            val auxFile = File(mCurrentPhotoPath)
-
-
+            val auxFile = File(mCurrentPhotoPath).readBytes()
+            val base64 = Base64.getEncoder().encodeToString(auxFile)
+            run("http://127.0.0.1:8000/api/image/")
             var bitmap: Bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath)
             imageView.setImageBitmap(bitmap)
 
@@ -105,7 +121,19 @@ class MainActivity : AppCompatActivity() {
     private fun requestPermission() {
         ActivityCompat.requestPermissions(this, arrayOf(READ_EXTERNAL_STORAGE, CAMERA), PERMISSION_REQUEST_CODE)
     }
+    private fun run(url: String) {
+        val request = Request.Builder()
+                .url(url)
+                .build()
 
+        client.run {
+
+            newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {}
+            override fun onResponse(call: Call, response: Response) = println(response.body()?.string())
+        })
+        }
+    }
     @Throws(IOException::class)
     private fun createFile(): File {
         // Create an image file name
@@ -118,7 +146,9 @@ class MainActivity : AppCompatActivity() {
         ).apply {
             // Save a file: path for use with ACTION_VIEW intents
             mCurrentPhotoPath = absolutePath
-            println(mCurrentPhotoPath)
+
         }
     }
 }
+
+
