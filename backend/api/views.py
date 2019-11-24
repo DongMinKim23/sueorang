@@ -8,4 +8,4 @@ from rest_framework.decorators import api_view, action
 @api_view(['GET','POST'])
 def image_ch(reques,q) :
     print('url받음.')
-    return Response(data="ok",status=status.HTTP_200_OK)
+    return Response(data={"message":"ok"},status=status.HTTP_200_OK)

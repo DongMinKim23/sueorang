@@ -5,5 +5,5 @@ from . import views
 
 app_name='api'
 urlpatterns = [
-    path('image/<str:q>',views.image_ch,name="image"),
+    path('image/<str:q>/',views.image_ch,name="image"),
 ]
