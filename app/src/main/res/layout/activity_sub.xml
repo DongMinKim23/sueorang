@@ -12,9 +12,11 @@
         android:layout_marginTop="100dp"
         android:layout_gravity="center_horizontal"
         android:id="@+id/btn2"/>
-    <ImageView
-        android:id="@+id/image_view"
-        android:background="@drawable/img_placehlder"
+
+    <TextView
+        android:id="@+id/textView"
+        android:text="ㄷ"
+        android:textSize="400sp"
         android:layout_gravity="center_horizontal"
         android:layout_width="400dp"
         android:layout_height="500dp" />

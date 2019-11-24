@@ -55,8 +55,10 @@ class MainActivity : AppCompatActivity() {
         })
         sendButton = findViewById(R.id.btn_send)
         sendButton.setOnClickListener(View.OnClickListener {
+            run("http://127.0.0.1:8000/api/image/")
             val intent = Intent(this, SubActivity::class.java)
             startActivity(intent)
+
         })
 
     }
